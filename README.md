@@ -11,5 +11,24 @@ Obligatory screenshot:
 ![Stockboard screenshot](https://github.com/bass3m/stockboard/blob/master/images/preview.png) 
 
 ## Quickstart
+```
+# fetch and compile dependencies
+$ mix deps.get
+$ mix compile
+
+# compile clojurescript. might need to download [leiningen](https://leiningen.org/)
+$ cd stockboardcljs
+$ lein deps
+$ ./scripts/build
+
+# build assets
+$ brunch build
+
+# Db tasks
+$ mix ecto.create
+$ mix ecto.migrate
+```
+
+Then point your browser to http://localhost:4000
 
 ## Configuration
