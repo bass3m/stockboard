@@ -6,3 +6,7 @@
 Stockboard is a application created with the intention of playing around with [Phoenix](http://www.phoenixframework.org/).
 In addition, some of my other goals for this application was to use the [Bulma CSS Framework](http://bulma.io/) 
 and [Chart.js](http://www.chartjs.org/). For the frontend piece, I wanted to use [clojurescript](https://clojurescript.org/).
+
+## Quickstart
+
+## Configuration
