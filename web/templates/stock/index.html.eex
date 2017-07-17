@@ -1,0 +1,58 @@
+<div class="tile is-parent is-12">
+  <article class="tile is-child box">
+    <h4 class="title">Listing stocks</h4>
+    <div class="table-responsive">
+      <table class="table is-bordered is-striped is-narrow">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Symbol</th>
+          <th>Exchange</th>
+          <th>Update every(secs)</th>
+          <th>Save quotes every(mins)</th>
+          <th>Keep quotes for(days)</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tfoot>
+        <tr>
+          <th>Name</th>
+          <th>Symbol</th>
+          <th>Exchange</th>
+          <th>Update every(secs)</th>
+          <th>Save quotes every(mins)</th>
+          <th>Keep quotes for(days)</th>
+          <th></th>
+        </tr>
+      </tfoot>
+      <tbody>
+        <%= for stock <- @stocks do %>
+            <tr>
+              <td> <%= stock.name %> </td>
+              <td><%= stock.symbol %></td>
+              <td><%= stock.exchange %></td>
+              <td><%= stock.update_every %></td>
+              <td><%= stock.save_every_mins %></td>
+              <td><%= stock.keep_for_days %></td>
+              <td>
+                  <div class="field is-grouped">
+                    <p class="control">
+                      <%= link "Show", to: stock_path(@conn, :show, stock), class: "button is-primary is-small" %>
+                    </p>
+                    <p class="control">
+                      <%= link "Edit", to: stock_path(@conn, :edit, stock), class: "button is-primary is-small" %>
+                    </p>
+                    <%= link "Delete", to: stock_path(@conn, :delete, stock), method: :delete, data: [confirm: "Are you sure?"], class: "button is-danger is-small" %>
+                  </div>
+              </td>
+            </tr>
+        <% end %>
+      </tbody>
+      </table>
+    </div>
+  <%= link "New stock", to: stock_path(@conn, :new) %>
+  </article>
+</div>
+<!-- need phoenix js for delete in form to work -->
+<script src="<%= static_path(@conn, "/js/app.js") %>"></script>

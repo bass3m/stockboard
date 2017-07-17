@@ -1,0 +1,10 @@
+<%= for item <- @navitems do %>
+    <a class="nav-item">
+        <%= if item.type == :span do %>
+            <span class=<%= "#{item.class}" %>></span>
+        <% end %>
+        <%= if item.type == :txt do %>
+            <%= "#{item.name}" %>
+        <% end %>
+    </a>
+<% end %>

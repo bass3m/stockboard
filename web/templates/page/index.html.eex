@@ -1,0 +1,65 @@
+<div class="tile is-parent is-vertical is-8">
+  <article class="tile is-child box">
+      <h4 class="title"> Market Sectors </h4>
+      <canvas class="chart" id="sectors"> </canvas>
+  </article>
+  <article class="tile is-child box">
+    <h4 class="title">Listing stocks</h4>
+    <div class="table-responsive">
+      <table class="table is-bordered is-striped is-narrow">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Symbol</th>
+          <th>Exchange</th>
+          <th>Current Price</th>
+          <th>Volume</th>
+          <th>High</th>
+          <th>Low</th>
+        </tr>
+      </thead>
+
+      <tfoot>
+        <tr>
+          <th>Name</th>
+          <th>Symbol</th>
+          <th>Exchange</th>
+          <th>Current Price</th>
+          <th>Volume</th>
+          <th>High</th>
+          <th>Low</th>
+        </tr>
+      </tfoot>
+      <tbody>
+        <%= for stock <- @stocks do %>
+          <tr>
+            <td><%= stock.name %></td>
+            <td><%= stock.symbol %></td>
+            <td><%= stock.exchange %></td>
+            <td class="price" id=<%= "#{String.upcase(stock.symbol)}" <> ":"  <> "#{String.upcase(stock.exchange)}" <> ":price" %>>
+                <%= "price" %>
+            </td>
+            <td class="volume" id=<%= "#{String.upcase(stock.symbol)}" <> ":"  <> "#{String.upcase(stock.exchange)}" <> ":volume" %>>
+                <%= "volume" %>
+            </td>
+            <td id=<%= "#{String.upcase(stock.symbol)}" <> ":"  <> "#{String.upcase(stock.exchange)}" <> ":price_hi" %>>
+                <%= "price_high" %>
+            </td>
+            <td id=<%= "#{String.upcase(stock.symbol)}" <> ":"  <> "#{String.upcase(stock.exchange)}" <> ":price_low" %>>
+                <%= "price_low" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+      </table>
+    </div>
+  </article>
+</div>
+
+<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+<!--  <script>require("web/static/js/app").App.run()</script> -->
+<script src="<%= static_path(@conn, "/js/cljs/stockboardcljs.js") %>"></script>
+<script type="text/javascript" >
+  var socket = require("web/static/js/socket").default;
+  stockboardcljs.core.run(socket);
+</script>

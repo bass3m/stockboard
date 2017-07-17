@@ -1,0 +1,59 @@
+<%= form_for @changeset, @action, fn f -> %>
+  <%= if @changeset.action do %>
+    <div class="alert alert-danger">
+      <p>Oops, something went wrong! Please check the errors below.</p>
+    </div>
+  <% end %>
+  <div class="field">
+    <%= label f, :symbol, class: "label" %>
+    <p class="control">
+    <%= text_input f, :symbol, class: "input", placeholder: "The stock symbol. Example: GOOGL" %>
+    </p>
+    <%= error_tag f, :symbol %>
+  </div>
+  <div class="field">
+    <%= label f, :exchange, class: "label" %>
+    <p class="control">
+        <span class="select">
+          <%= select f, :exchange, ["NASDAQ": "nasdaq", "NYSE": "nyse"], class: "select", prompt: "Select the exchange" %>
+        </span>
+    </p>
+    <%= error_tag f, :exchange %>
+  </div>
+  <div class="field">
+    <%= label f, :name, class: "label" %>
+    <p class="control">
+    <%= text_input f, :name, class: "input", placeholder: "Enter name for stock. Example: Google" %>
+    </p>
+    <%= error_tag f, :name %>
+  </div>
+  <div class="field">
+    <%= label f, :update_every, class: "label" %>
+    <p class="control">
+        <%= number_input f, :update_every, class: "input",
+        placeholder: "Seconds between stock updates (defaults to 30 seconds)", value: 30 %>
+    </p>
+    <%= error_tag f, :update_every %>
+  </div>
+  <div class="field">
+    <%= label f, :save_every_mins, class: "label" %>
+    <p class="control">
+        <%= number_input f, :save_every_mins, class: "input",
+        placeholder: "Minutes between persisting stock quotes (defaults to 30 minutes)", value: 30 %>
+    </p>
+    <%= error_tag f, :save_every_mins %>
+  </div>
+  <div class="field">
+    <%= label f, :keep_for_days, class: "label" %>
+    <p class="control">
+        <%= number_input f, :keep_for_days, class: "input",
+        placeholder: "Days to keep persisted stock quotes (defaults to 1 day) ", value: 1 %>
+    </p>
+    <%= error_tag f, :keep_for_days %>
+  </div>
+  <div class="field" style="margin-top:15px;">
+    <p class="control">
+      <%= submit "Submit", class: "button is-primary" %>
+    </p>
+  </div>
+<% end %>

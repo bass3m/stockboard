@@ -1,0 +1,13 @@
+<nav class="nav app-navbar" style="position: fixed; min-width: 100%; z-index: 1024; box-shadow: 0 2px 3px hsla(0,0%,7%,.1), 0 0 0 1px hsla(0,0%,7%,.1);">
+  <div class="nav-left">
+      <%= render("navitem.html", navitems: @navbar.left) %>
+  </div>
+
+  <div class="nav-center">
+      <%= render("navitem.html", navitems: @navbar.center) %>
+  </div>
+
+  <div class="nav-right">
+      <%= render("navitem.html", navitems: @navbar.right) %>
+  </div>
+</nav>

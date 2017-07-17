@@ -1,0 +1,61 @@
+/* This file is for your main application css. */
+.logo {
+    width: 100px;
+    height: 36px;
+    display: inline-block;
+    margin-bottom: 1em;
+    background-image: url("/images/bulma.png");
+    background-size: 100px 36px;
+};
+/* XXX get rid of this */
+.app-sidebar {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    bottom: 0;
+    padding: 20px 0 50px;
+    width: 180px;
+    min-width: 45px;
+    max-height: 100vh;
+    height: calc(100% - 50px);
+    z-index: 1024 - 1;
+    background: #FFF;
+    box-shadow: 0 2px 3px rgba(17, 17, 17, 0.1), 0 0 0 1px rgba(17, 17, 17, 0.1);
+    overflow-y: auto;
+    overflow-x: hidden;
+};
+.app-sidebar.icon {
+        vertical-align: baseline;
+};
+.app-sidebar.menu-label {
+        padding-left: 5px;
+};
+.app-sidebar.menu-list li a + ul {
+            margin: 0 10px 0 15px;
+};
+.app-main {
+    padding-top: 50px;
+    margin-left: 180px;
+    transform: translate3d(0, 0, 0);
+};
+.app-content {
+    padding: 20px;
+};
+.app-navbar {
+    position: fixed;
+    min-width: 100%;
+    z-index: 1024;
+    box-shadow: 0 2px 3px rgba(17, 17, 17, 0.1), 0 0 0 1px rgba(17, 17, 17, 0.1);
+};
+.app-navbar.container {
+        margin: auto 10px;
+};
+.app-navbar.nav-right {
+        align-items: stretch;
+        align-items: stretch;
+        flex: 1;
+        justify-content: flex-end;
+        overflow: hidden;
+        overflow-x: auto;
+        white-space: nowrap;
+};

@@ -1,0 +1,12 @@
+<div class="tile is-parent is-6">
+  <article class="tile is-child box">
+      <h1 class="title"> Add new stock </h1>
+        <%= render "form.html", changeset: @changeset,
+          action: stock_path(@conn, :create) %>
+  <div class="field" style="margin-top:15px;">
+    <p class="control">
+      <%= link "List Stocks", class: "button is-link", to: stock_path(@conn, :index) %>
+    </p>
+  </div>
+  </article>
+</div>

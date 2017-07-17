@@ -1,0 +1,33 @@
+<div class="tile is-parent is-4">
+  <article class="tile is-child box">
+    <h4 class="title">Showing stock</h4>
+    <ul>
+      <li>
+        <strong>Symbol:</strong>
+        <%= @stock.symbol %>
+      </li>
+      <li>
+        <strong>Exchange:</strong>
+        <%= @stock.exchange %>
+      </li>
+      <li>
+        <strong>Name:</strong>
+        <%= @stock.name %>
+      </li>
+      <li>
+        <strong>Update every (secs):</strong>
+        <%= @stock.update_every %>
+      </li>
+      <li>
+        <strong>Save quotes every (mins):</strong>
+        <%= @stock.save_every_mins %>
+      </li>
+      <li>
+        <strong>Keep quotes for (days):</strong>
+        <%= @stock.keep_for_days %>
+      </li>
+    </ul>
+    <%= link "Edit", to: stock_path(@conn, :edit, @stock) %>
+    <%= link "Back", to: stock_path(@conn, :index) %>
+  </article>
+</div>
