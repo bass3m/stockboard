@@ -1,4 +1,4 @@
-**[What is it ?](#what-is-it)**
+**[What is it ?](#what-is-it)** |
 **[Quickstart](#quickstart)** |
 **[Configuration](#configuration)**
 
