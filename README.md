@@ -27,8 +27,20 @@ $ brunch build
 # Db tasks
 $ mix ecto.create
 $ mix ecto.migrate
+# start server
+$ mix phoenix.server
 ```
 
 Then point your browser to http://localhost:4000
 
 ## Configuration
+
+![Stock quote configuration screenshot](https://github.com/bass3m/stockboard/blob/master/images/stock_cfg.png) 
+You can add stocks to track using the `add stocks` tab.
+Here's a description of what some of these stock configuration options mean:
+  * Symbol : stock ticker symbol. GOOGL for example.
+  * Exchange : the stock exchange where the stock is traded. Currently only NYSE or NASDAQ.
+  * Name : A name to associate with the stock symbol.
+  * Update every : Interval in seconds for refreshing the stock quote.
+  * Save every : Interval in minutes for saving stock quotes into the Database. The application currently persists : the price (current/high/low) as well as the volume.
+  * Keep for : How many days to keep the quotes in the Database.
