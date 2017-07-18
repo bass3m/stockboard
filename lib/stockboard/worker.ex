@@ -122,9 +122,17 @@ defmodule Stockboard.Worker do
   def trim_db_entries(stock_symbol, keep_entries_for_days) do
     Logger.info("Trim entries for #{inspect stock_symbol} older than #{inspect keep_entries_for_days}")
     stock = Repo.get_by!(Stock, symbol: stock_symbol)
-    query = from h in History, where: h.stock_id == ^stock.id and h.updated_at < ago(1, "day")
-    delete_result = Repo.delete_all(query)
-    Logger.debug("Trimmed db for stock #{inspect stock_symbol} with result #{inspect delete_result}")
+    query = from h in History, where: h.stock_id == ^stock.id
+    count_query = from h in History, select: count(h.id)
+    case Repo.all(count_query) do
+      [0] ->
+        Logger.info("Trim entries for: #{inspect stock_symbol} nothing to trim, table empty")
+      _ ->
+        query = from(h in query,
+          where: not(is_nil(h.updated_at)) and h.updated_at < ago(^keep_entries_for_days, "day"))
+        delete_result = Repo.delete_all(query)
+        Logger.debug("Trimmed db for stock #{inspect stock_symbol} with result #{inspect delete_result}")
+    end
   end
 
   def notify_clients(stock_quote_map, symbol, exchange) do

@@ -9,16 +9,28 @@ defmodule Stockboard.Api do
 
   def call_api(stock, exchange \\ "NASDAQ") do
     {stock_uri, stock_key} = api_setup()
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get(stock_uri, [],
-      [stream_to: self(),
-       params: [function: "GLOBAL_QUOTE", symbol: exchange <> ":" <> stock, apikey: stock_key]])
-    {:ok, id}
+    case HTTPoison.get(stock_uri, [],
+          [stream_to: self(),
+           params: [function: "GLOBAL_QUOTE", symbol: exchange <> ":" <> stock, apikey: stock_key]]) do
+      {:ok, %HTTPoison.AsyncResponse{id: id}} ->
+        {:ok, id}
+      {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
+        {:error, :dns_error}
+      _ ->
+        {:error, :unknown_http}
+    end
   end
 
   def call_api() do
     {stock_uri, stock_key} = api_setup()
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get(stock_uri, [],
-      [stream_to: self(), params: [function: "SECTOR", apikey: stock_key]])
-    {:ok, id}
+    case HTTPoison.get(stock_uri, [],
+          [stream_to: self(), params: [function: "SECTOR", apikey: stock_key]]) do
+      {:ok, %HTTPoison.AsyncResponse{id: id}} ->
+        {:ok, id}
+      {:error, %HTTPoison.Error{id: nil, reason: :nxdomain}} ->
+        {:error, :dns_error}
+      _ ->
+        {:error, :unknown_http}
+    end
   end
 end
