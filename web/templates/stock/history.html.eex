@@ -1,0 +1,28 @@
+<div class="tile is-parent is-vertical is-8">
+  <article class="tile is-child box">
+      <h4 class="title"> Stock History </h4>
+      <canvas class="chart" id="history"> </canvas>
+  </article>
+  <%= form_for @conn, stock_path(@conn, :interval, @id), [as: :interval], fn f -> %>
+  <div class="field is-grouped">
+    <p class="control">
+      <span class="select">
+          <%= select f, :interval, ["1 Hour": "1_hour", "3 Hours": "3_hour", "6 Hours": "6_hour"],
+          class: "select", prompt: "Select time interval" %>
+      </span>
+    </p>
+  </div>
+  <div class="field" style="margin-top:15px;">
+    <p class="control">
+      <%= submit "Submit", class: "button is-primary" %>
+    </p>
+  </div>
+  <% end %>
+</div>
+
+<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+<script src="<%= static_path(@conn, "/js/cljs/stockboardcljs.js") %>"></script>
+<script type="text/javascript" >
+  var socket = require("web/static/js/socket").default;
+  stockboardcljs.core.run(socket, "history");
+</script>

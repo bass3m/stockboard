@@ -48,10 +48,10 @@
     channel))
 
 (defn update-data!
-  [arr new-entry history]
-  ;;(println "update-data:" arr new-entry history)
+  [arr new-entry history-count]
+  (println "update-data:" arr new-entry history)
   (.push arr new-entry)
-  (when (> (count arr) history)
+  (when (> (count arr) history-count)
     (.shift arr)))
 
 (defn update-chart-data
@@ -73,11 +73,13 @@
   [msg]
   (let [title (-> msg :body :title)
         dataset (-> msg :body :dataset)
+        ;; labels are the sector keys
         labels (-> msg :body :labels)
         new-date (.toDate (js/moment))
         sector-chart (get-state "sectors")
         chart (:chart sector-chart)]
-    (update-chart-data chart new-date dataset labels)))
+    (when chart
+      (update-chart-data chart new-date dataset labels))))
 
 (defmethod handle-server-msg "realtime_stock_data"
   [msg]
@@ -94,9 +96,47 @@
         price-low-div-id (str symbol ":" exchange ":price_low")]
     (doall
      (map
-      (fn [div-id txt] (set! (.-textContent (by-id div-id)) txt))
+      (fn [div-id txt]
+        (let [div (by-id div-id)]
+          (when div
+            (set! (.-textContent div) txt))))
       [price-div-id volume-div-id price-hi-div-id price-low-div-id]
       [price volume price-hi price-low]))))
+
+;; needs work
+(defn update-history-chart-data
+  [chart stock-symbol new-dataset new-timestamps]
+  (let [current-dataset (first (.-datasets (.-data chart)))
+        current-timestamps (.-labels (.-data chart))]
+    (println "current ds:" current-dataset)
+    (println "current ts:" current-timestamps)
+    (doall
+     (map (fn [new-ds new-ts]
+            (doall
+             (update-data! (.-data current-dataset) new-ds 100)
+             (update-data! current-timestamps new-ts 100)))
+          new-dataset new-timestamps))
+    (set! (.-label current-dataset) stock-symbol))
+  (.update chart))
+
+(defmethod handle-server-msg "historical_stock_data"
+  [msg]
+  (let [symbol (-> msg :body :symbol)
+        exchange (-> msg :body :exchange)
+        prices (-> msg :body :prices)
+        timestamps (-> msg :body :timestamps)
+        now (.toDate (js/moment))
+        history-chart (get-state "history")
+        chart (:chart history-chart)]
+    (println "rcvd historical stock data for:" symbol ":ex:" exchange ":now:" now)
+    (println "history:" prices)
+    ;;history: [20 46 38 13 57 18 6 73 98 65 37 88]
+    (println "timestamps:" timestamps)
+    (update-history-chart-data chart symbol prices timestamps)
+    ;;timestamps: [2017-08-26T00:45:26.767387 2017-08-26T00:35:26.741726 2017-08-26T00:40:26.754801 2017-08-26T01:05:26.829620 2017-08-26T01:17:08.515443 2017-08-26T00:30:26.729280 2017-08-26T00:50:26.779297 2017-08-26T00:55:26.790917 2017-08-26T01:12:08.506266 2017-08-26T01:00:26.812084 2017-08-26T01:22:08.528224 2017-08-26T01:27:08.544192]
+    ;; get chart
+    ;; update it
+    ))
 
 (defmethod handle-server-msg :default
   [msg]
@@ -108,9 +148,20 @@
     ;;(println "handle-server-msg* msg:" msg)
     (handle-server-msg msg)))
 
+(defn get-random-int
+  [minint maxint]
+  (->> minint
+      (- maxint)
+      (* (.random js/Math))
+      (.floor js/Math)
+      (+ minint)))
+
 (defn chart-cfg
-  []
-  (let [colors ["#1fc8db" "#fce473","#42afe3" "#ed6c63" "#97cd76"]]
+  [context]
+  (let [all-colors ["#1fc8db" "#fce473","#42afe3" "#ed6c63" "#97cd76"]
+        colors (if (= context "dashboard")
+                 all-colors
+                 [(nth all-colors (get-random-int 0 (count all-colors)))])]
     {:type "line",
      :data {:labels []
             :datasets (mapv (fn [c]
@@ -144,15 +195,18 @@
     (put-state! chart-id {:chart chart})))
 
 ;; XXX grab all charts from templates ?
-(defn init! []
+;; XXX can have init do a get history for 1 hour
+(defn init!
+  [context]
   (let [charts-seq (get-dom-charts)]
     (doall
-     (map (fn [chart] (init-chart! chart (chart-cfg))) charts-seq))))
+     (map (fn [chart] (init-chart! chart (chart-cfg context))) charts-seq))))
 
+;; pass flag here to control chart creation
 (defn run
-  [socket]
+  [socket context]
   (println "running cljs/phoenix!")
-  (init!)
+  (init! context)
   (.connect socket)
   (.onOpen socket (fn [] (println "connected!")))
   (go

@@ -38,13 +38,21 @@ defmodule Stockboard.Main do
     GenServer.call(@name, {:update_worker, stock})
   end
 
+  def spawn_worker(%{symbol: "test"} = _stock) do
+    Process.spawn(Stockboard.TestWorker, :test_worker, [], [:link])
+  end
+
+  def spawn_worker(stock) do
+    Process.spawn(Stockboard.Worker, :stock_worker, [stock], [:link])
+  end
+
   def init(state) do
     stocks = Repo.all(Stock)
     # want to start linked processes
     workers =
       Enum.reduce(stocks, [],
         fn(stock, acc) ->
-          [%{pid: Process.spawn(Stockboard.Worker, :stock_worker, [stock], [:link]),
+          [%{pid: spawn_worker(stock),
              stock_id: stock.id} | acc] end)
     Process.send(self(), :call_api, [])
     {:ok, %{state | workers: workers}}
@@ -75,7 +83,7 @@ defmodule Stockboard.Main do
     Logger.info "Starting worker for stock #{inspect stock}"
     {:reply, {:ok, :worker_started},
      %{state |
-       workers: [%{pid: Process.spawn(Stockboard.Worker, :stock_worker, [stock], [:link]),
+       workers: [%{pid: spawn_worker(stock),
                    stock_id: stock.id} | state.workers]}}
   end
 

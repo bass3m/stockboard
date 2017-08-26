@@ -29,5 +29,6 @@
     </ul>
     <%= link "Edit", to: stock_path(@conn, :edit, @stock) %>
     <%= link "Back", to: stock_path(@conn, :index) %>
+    <%= link "History", to: stock_path(@conn, :history, @stock) %>
   </article>
 </div>

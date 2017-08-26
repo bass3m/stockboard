@@ -18,6 +18,8 @@ defmodule Stockboard.Router do
 
     get "/", PageController, :index
     resources "/stocks", StockController
+    get "/history/:id", StockController, :history
+    post "/interval/:id", StockController, :interval
   end
 
   # Other scopes may use custom stacks.

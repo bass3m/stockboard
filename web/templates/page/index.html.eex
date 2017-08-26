@@ -61,5 +61,5 @@
 <script src="<%= static_path(@conn, "/js/cljs/stockboardcljs.js") %>"></script>
 <script type="text/javascript" >
   var socket = require("web/static/js/socket").default;
-  stockboardcljs.core.run(socket);
+  stockboardcljs.core.run(socket, "dashboard");
 </script>
