@@ -3,21 +3,23 @@
       <h4 class="title"> Stock History </h4>
       <canvas class="chart" id="history"> </canvas>
   </article>
-  <%= form_for @conn, stock_path(@conn, :interval, @id), [as: :interval], fn f -> %>
-  <div class="field is-grouped">
-    <p class="control">
-      <span class="select">
-          <%= select f, :interval, ["1 Hour": "1_hour", "3 Hours": "3_hour", "6 Hours": "6_hour"],
-          class: "select", prompt: "Select time interval" %>
-      </span>
-    </p>
+  <div class="field">
+    <label class="label">Select time interval</label>
+    <div class="control">
+      <div class="select">
+        <select id="interval-selection" data-stock-id=<%= @id %>>
+          <option value="1_hour">1 Hour</option>
+          <option value="3_hour">3 Hours</option>
+          <option value="6_hour">6 Hours</option>
+        </select>
+      </div>
+    </div>
   </div>
   <div class="field" style="margin-top:15px;">
-    <p class="control">
-      <%= submit "Submit", class: "button is-primary" %>
-    </p>
+    <div class="control">
+        <button id="interval-button" class="button is-primary"> Submit </button>
+    </div>
   </div>
-  <% end %>
 </div>
 
 <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

@@ -49,7 +49,7 @@
 
 (defn update-data!
   [arr new-entry history-count]
-  (println "update-data:" arr new-entry history)
+  (println "update-data:" arr new-entry history-count)
   (.push arr new-entry)
   (when (> (count arr) history-count)
     (.shift arr)))
@@ -108,6 +108,7 @@
   [chart stock-symbol new-dataset new-timestamps]
   (let [current-dataset (first (.-datasets (.-data chart)))
         current-timestamps (.-labels (.-data chart))]
+    ;; need to clear data first
     (println "current ds:" current-dataset)
     (println "current ts:" current-timestamps)
     (doall
@@ -130,13 +131,8 @@
         chart (:chart history-chart)]
     (println "rcvd historical stock data for:" symbol ":ex:" exchange ":now:" now)
     (println "history:" prices)
-    ;;history: [20 46 38 13 57 18 6 73 98 65 37 88]
     (println "timestamps:" timestamps)
-    (update-history-chart-data chart symbol prices timestamps)
-    ;;timestamps: [2017-08-26T00:45:26.767387 2017-08-26T00:35:26.741726 2017-08-26T00:40:26.754801 2017-08-26T01:05:26.829620 2017-08-26T01:17:08.515443 2017-08-26T00:30:26.729280 2017-08-26T00:50:26.779297 2017-08-26T00:55:26.790917 2017-08-26T01:12:08.506266 2017-08-26T01:00:26.812084 2017-08-26T01:22:08.528224 2017-08-26T01:27:08.544192]
-    ;; get chart
-    ;; update it
-    ))
+    (update-history-chart-data chart symbol prices timestamps)))
 
 (defmethod handle-server-msg :default
   [msg]
@@ -148,6 +144,11 @@
     ;;(println "handle-server-msg* msg:" msg)
     (handle-server-msg msg)))
 
+(defn push-msg-to-server*
+  [wschannel msg]
+  ;;(println "push to ws msg:" (js/JSON.stringify (clj->js msg)))
+  (.push wschannel "new_msg" (js/JSON.stringify (clj->js msg))))
+
 (defn get-random-int
   [minint maxint]
   (->> minint
@@ -156,33 +157,37 @@
       (.floor js/Math)
       (+ minint)))
 
+(defn default-chart-cfg
+  [colors]
+  {:type "line",
+   :data {:labels []
+          :datasets (mapv (fn [c]
+                            {:label ""
+                             :data []
+                             ;;:data {:labels [] :datasets []}
+                             :fill false
+                             :backgroundColor c
+                             :borderColor c
+                             :pointBackgroundColor c
+                             :pointBorderColor c})
+                          colors)}
+   :options {:animation false
+             :title {:text "My title"} ;; XXX passed with data
+             :scales {:xAxes [{:type "time"
+                               :time {:format "HH:mm:ss.SSS"
+                                      :tooltipFormat "ll HH:mm:ss.SSS"}
+                               :scaleLabel {:display false
+                                            :labelString "Date"}}]
+                      :yAxes [{:scaleLabel {:display false
+                                            :labelString "value"}}]}}})
+
 (defn chart-cfg
   [context]
   (let [all-colors ["#1fc8db" "#fce473","#42afe3" "#ed6c63" "#97cd76"]
         colors (if (= context "dashboard")
                  all-colors
                  [(nth all-colors (get-random-int 0 (count all-colors)))])]
-    {:type "line",
-     :data {:labels []
-            :datasets (mapv (fn [c]
-                              {:label ""
-                               :data []
-                               ;;:data {:labels [] :datasets []}
-                               :fill false
-                               :backgroundColor c
-                               :borderColor c
-                               :pointBackgroundColor c
-                               :pointBorderColor c})
-                            colors)}
-     :options {:animation false
-               :title {:text "My title"} ;; XXX passed with data
-               :scales {:xAxes [{:type "time"
-                                 :time {:format "HH:mm:ss.SSS"
-                                        :tooltipFormat "ll HH:mm:ss.SSS"}
-                                 :scaleLabel {:display false
-                                              :labelString "Date"}}]
-                        :yAxes [{:scaleLabel {:display false
-                                              :labelString "value"}}]}}}))
+    (default-chart-cfg colors)))
 
 (defn get-dom-charts []
   (array-seq (.getElementsByClassName js/document "chart")))
@@ -191,13 +196,26 @@
   [chart-el cfg]
   (let [chart (js/Chart. chart-el (clj->js cfg))
         chart-id (.-id chart-el)]
-;;    (println "init chart: el:" chart-el ":id:" chart-id "chart" chart)
     (put-state! chart-id {:chart chart})))
 
-;; XXX grab all charts from templates ?
-;; XXX can have init do a get history for 1 hour
+(defn interval-handler [out-chan]
+  (println "button clicked !")
+  (let [selector-div (by-id "interval-selection")
+        idx (.-selectedIndex selector-div)
+        val (.-value (aget (.-options selector-div) idx))
+        stock-id (.-stockId (.-dataset selector-div))]
+    (println "Selected:" val)
+    (put! out-chan {:msg "interval-selected" :value val :stock stock-id})))
+
+(defn setup-event-listeners
+  [context out-chan]
+  (when (= "history" context)
+    (let [button-div (by-id "interval-button")]
+      (.addEventListener button-div "click" (partial interval-handler out-chan) false))))
+
 (defn init!
-  [context]
+  [context out-chan]
+  (setup-event-listeners context out-chan)
   (let [charts-seq (get-dom-charts)]
     (doall
      (map (fn [chart] (init-chart! chart (chart-cfg context))) charts-seq))))
@@ -206,16 +224,17 @@
 (defn run
   [socket context]
   (println "running cljs/phoenix!")
-  (init! context)
+;;  (init! context)
   (.connect socket)
   (.onOpen socket (fn [] (println "connected!")))
   (go
     (let [in-chan (chan)
           out-chan (chan)
           wschannel (channel-setup socket in-chan)]
+      (init! context out-chan)
       (loop []
         (let [[m c] (alts! [in-chan out-chan])]
           (condp = c
             in-chan (handle-server-msg* m)
-            out-chan (println "send to server" m))
+            out-chan (push-msg-to-server* wschannel m))
           (recur))))))

@@ -1,12 +1,8 @@
 defmodule Stockboard.StockController do
   use Stockboard.Web, :controller
-  import Ecto.Query, only: [from: 2]
-  import Ecto.Query.API, only: [ago: 2]
   alias Stockboard.Stock
   alias Stockboard.Main
   alias Stockboard.Repo
-  alias Stockboard.History
-  alias Stockboard.Api
   require Logger
 
 
@@ -76,42 +72,42 @@ defmodule Stockboard.StockController do
   end
 
   def history(conn, %{"id" => id}) do
-    stock = Repo.get!(Stock, id)
+    #stock = Repo.get!(Stock, id)
     #render(conn, "history.html", stock: stock)
     render(conn, "history.html", id: id)
   end
 
-  defp get_history_for_interval(stock_symbol, interval) do
-    [how_many, time_unit] = String.split(interval, "_")
-    how_many = Integer.parse(how_many) |> elem(0)
-    stock = Repo.get_by!(Stock, symbol: stock_symbol)
-    query = from h in History, where: h.stock_id == ^stock.id
-    count_query = from h in History, select: count(h.id)
-    case Repo.all(count_query) do
-      [0] ->
-        Logger.info("Get entries for: #{inspect stock_symbol} nothing to show, table empty")
-        []
-      _ ->
-        query = from(h in query,
-        where: not(is_nil(h.updated_at)) and h.updated_at > ago(^how_many, ^time_unit),
-        select: [h.price, h.updated_at])
-        stock_history = Repo.all(query)
-        Logger.debug("Get db for stock #{inspect stock_symbol} interval #{inspect interval}")
-        Logger.debug("History results for stock #{inspect stock_symbol} : #{inspect stock_history}")
-        stock_history
-    end
-  end
+#  defp get_history_for_interval(stock_symbol, interval) do
+#    [how_many, time_unit] = String.split(interval, "_")
+#    how_many = Integer.parse(how_many) |> elem(0)
+#    stock = Repo.get_by!(Stock, symbol: stock_symbol)
+#    query = from h in History, where: h.stock_id == ^stock.id
+#    count_query = from h in History, select: count(h.id)
+#    case Repo.all(count_query) do
+#      [0] ->
+#        Logger.info("Get entries for: #{inspect stock_symbol} nothing to show, table empty")
+#        []
+#      _ ->
+#        query = from(h in query,
+#        where: not(is_nil(h.updated_at)) and h.updated_at > ago(^how_many, ^time_unit),
+#        select: [h.price, h.updated_at])
+#        stock_history = Repo.all(query)
+#        Logger.debug("Get db for stock #{inspect stock_symbol} interval #{inspect interval}")
+#        Logger.debug("History results for stock #{inspect stock_symbol} : #{inspect stock_history}")
+#        stock_history
+#    end
+#  end
 
-  def interval(conn, %{"id" => id, "interval" => interval} = stock_params) do
-    stock = Repo.get!(Stock, id)
-    Logger.info "interval request for id #{inspect id} stock #{inspect stock_params} interval #{inspect interval}"
-    history = get_history_for_interval(stock.symbol, interval["interval"])
-    Stockboard.Endpoint.broadcast!("metrics:stockboard", "new_msg",
-      %{metric: "historical_stock_data", body: %{symbol: String.upcase(stock.symbol),
-                                                 exchange: String.upcase(stock.exchange),
-                                                 prices: Enum.map(history, fn h -> List.first(h) end),
-                                                 timestamps: Enum.map(history, fn h -> List.last(h) end),
-                                                 type: "table"}})
-    render(conn, "history.html", id: id)
-  end
+#  def interval(conn, %{"id" => id, "interval" => interval} = stock_params) do
+#    stock = Repo.get!(Stock, id)
+#    Logger.info "interval request for id #{inspect id} stock #{inspect stock_params} interval #{inspect interval}"
+#    history = get_history_for_interval(stock.symbol, interval["interval"])
+#    Stockboard.Endpoint.broadcast!("metrics:stockboard", "new_msg",
+#      %{metric: "historical_stock_data", body: %{symbol: String.upcase(stock.symbol),
+#                                                 exchange: String.upcase(stock.exchange),
+#                                                 prices: Enum.map(history, fn h -> List.first(h) end),
+#                                                 timestamps: Enum.map(history, fn h -> List.last(h) end),
+#                                                 type: "table"}})
+#    render(conn, "history.html", id: id)
+#  end
 end
