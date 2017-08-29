@@ -8,7 +8,7 @@ defmodule Stockboard.History do
     field :price_low, :float
     belongs_to :stock, Stockboard.Stock
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc """

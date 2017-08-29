@@ -49,7 +49,6 @@
 
 (defn update-data!
   [arr new-entry history-count]
-  (println "update-data:" arr new-entry history-count)
   (.push arr new-entry)
   (when (> (count arr) history-count)
     (.shift arr)))
@@ -89,7 +88,6 @@
         price-low (-> msg :body :price_low)
         price-hi (-> msg :body :price_hi)
         volume (-> msg :body :volume)
-        now (.toDate (js/moment))
         price-div-id (str symbol ":" exchange ":price")
         volume-div-id (str symbol ":" exchange ":volume")
         price-hi-div-id (str symbol ":" exchange ":price_hi")
@@ -103,19 +101,28 @@
       [price-div-id volume-div-id price-hi-div-id price-low-div-id]
       [price volume price-hi price-low]))))
 
-;; needs work
+(defn clear-arr!
+  [arr]
+  (loop [len (count arr)
+         entry-count 0]
+    (when (> len 0)
+      (.pop arr)
+      (recur (count arr) (inc entry-count)))))
+
+(defn clear-history-chart!
+  [chart]
+  (clear-arr! (.-data (first (.-datasets (.-data chart)))))
+  (clear-arr! (.-labels (.-data chart))))
+
 (defn update-history-chart-data
   [chart stock-symbol new-dataset new-timestamps]
   (let [current-dataset (first (.-datasets (.-data chart)))
         current-timestamps (.-labels (.-data chart))]
-    ;; need to clear data first
-    (println "current ds:" current-dataset)
-    (println "current ts:" current-timestamps)
     (doall
      (map (fn [new-ds new-ts]
             (doall
              (update-data! (.-data current-dataset) new-ds 100)
-             (update-data! current-timestamps new-ts 100)))
+             (update-data! current-timestamps (.utc js/moment new-ts) 100)))
           new-dataset new-timestamps))
     (set! (.-label current-dataset) stock-symbol))
   (.update chart))
@@ -126,12 +133,9 @@
         exchange (-> msg :body :exchange)
         prices (-> msg :body :prices)
         timestamps (-> msg :body :timestamps)
-        now (.toDate (js/moment))
         history-chart (get-state "history")
         chart (:chart history-chart)]
-    (println "rcvd historical stock data for:" symbol ":ex:" exchange ":now:" now)
-    (println "history:" prices)
-    (println "timestamps:" timestamps)
+    (clear-history-chart! chart)
     (update-history-chart-data chart symbol prices timestamps)))
 
 (defmethod handle-server-msg :default
@@ -199,12 +203,10 @@
     (put-state! chart-id {:chart chart})))
 
 (defn interval-handler [out-chan]
-  (println "button clicked !")
   (let [selector-div (by-id "interval-selection")
         idx (.-selectedIndex selector-div)
         val (.-value (aget (.-options selector-div) idx))
         stock-id (.-stockId (.-dataset selector-div))]
-    (println "Selected:" val)
     (put! out-chan {:msg "interval-selected" :value val :stock stock-id})))
 
 (defn setup-event-listeners
@@ -224,9 +226,8 @@
 (defn run
   [socket context]
   (println "running cljs/phoenix!")
-;;  (init! context)
   (.connect socket)
-  (.onOpen socket (fn [] (println "connected!")))
+  (.onOpen socket (fn [] (println "ws connected!")))
   (go
     (let [in-chan (chan)
           out-chan (chan)

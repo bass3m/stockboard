@@ -27,15 +27,14 @@ defmodule Stockboard.MetricsChannel do
         order_by: [asc: h.updated_at],
         select: [h.price, h.updated_at])
         stock_history = Repo.all(query)
-        Logger.debug("Get db for stock #{inspect stock_symbol} interval #{inspect interval}")
-        Logger.debug("History results for stock #{inspect stock_symbol} : #{inspect stock_history}")
+        Logger.info("History: #{inspect stock_history} count: #{inspect Enum.count(stock_history)}")
         stock_history
     end
   end
 
   def handle_in("new_msg", params, socket) do
     {:ok, params} = Poison.decode(params)
-    Logger.info "Rcvd ws msg: #{inspect params}"
+    Logger.debug "Rcvd ws msg: #{inspect params}"
     with stock_id <- params["stock"],
          interval <- params["value"],
          stock <- Repo.get!(Stock, stock_id),

@@ -10,7 +10,7 @@ defmodule Stockboard.Stock do
     field :keep_for_days, :integer
     has_many :histories, Stockboard.History, on_delete: :delete_all
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc """
